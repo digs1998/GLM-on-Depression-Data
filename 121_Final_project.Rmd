@@ -1,0 +1,80 @@
+---
+title: "Logistic Regression on Depression Data"
+output: pdf_document
+---
+
+```{r}
+library(mice)
+```
+#Loading Data and Exploring the dataset
+```{r}
+dep = read.csv('~/Desktop/Education/Winter term/QBS-121/b_depressed.csv', header=T)
+head(dep)
+```
+```{r}
+str(dep)
+```
+
+```{r}
+summary(dep)
+```
+```{r}
+dep_cleaned = dep[!is.na(dep$no_lasting_investmen),]
+summary(dep_cleaned)
+```
+# Correlation Among Variables
+```{r}
+library(ggplot2)
+
+cor_matrix = cor(dep_cleaned)
+
+heatmap(cor_matrix, 
+        main = "Correlation Heatmap",
+        xlab = "Variables",
+        ylab = "Variables",
+        col = colorRampPalette(c("blue", "white", "red"))(1000),
+        scale = "none",
+        margins = c(5, 5))
+```
+
+There is some correlation between incoming_business and education levels.
+
+```{r}
+boxplot(dep_cleaned$Age, horizontal = TRUE)
+```
+```{r}
+#let's determine what features to be considered
+
+features = glm(depressed~., family=binomial(link="logit"), data=dep_cleaned)
+model = step(features, direction = "backward")
+summary(model)
+```
+Using Backward stepwise modeling, we were able to determine the features that contribute most to AIC, which is goodness of fit of how predictor variable explains the response variable. The variables that have high p-values do not contribute well to AIC and hence are removed improving generalizability of model and preventing overfitting.
+
+# Modeling
+```{r}
+#not including survey-id as it is an identifier col
+
+glm_model = glm(depressed ~ Age + education_level + total_members + no_lasting_investmen + durable_asset, family=binomial(link='logit'), data=dep_cleaned)
+
+summary(glm_model)
+```
+We have three variables that are significant, education_level, Age, and no_lasting_investmen, Education_level variable is negatively related to the outcome of depression, as is indicated by the negative estimate of -6.480e-02, whereby people with higher education levels were less depressed than others. Age, and no_lasting_investmen were positively related to influence depression amongst individuals. Higher values of Age led to depression, possibly due to hypertension or something, lasting investment of any sort was another variable that caused depression.
+
+```{r}
+library(pROC)
+
+predicted_probs = predict(glm_model, type = "response")
+
+# Create the ROC curve
+roc_curve = roc(depressed ~ predicted_probs, data = dep_cleaned)
+
+# Plot the ROC curve
+plot(roc_curve, main = "ROC Curve for GLM Model", col = "blue")
+coords = coords(roc_curve, "best", ret = c("threshold", "specificity", "sensitivity"))
+text(coords$threshold, coords$sensitivity, labels = paste0("AUC = ", round(auc(roc_curve),2)), pos = 4)
+```
+```{r}
+exp(glm_model$coefficients)
+```
+

@@ -9,6 +9,6 @@ Using a Generalized Linear Model to predict factors that caused depression.
   using the Logistic Regression model, on the cleaned dataset.
 - Using Backward stepwise modeling, we were able to determine the features that contribute most to AIC, which is the goodness of fit of how the predictor variable explains the response variable. The variables that have high p-values do not contribute well to AIC and hence are removed improving the generalizability of the model and preventing overfitting.
 - We found out that Age, Education Level, and no_lasting_investment predictor variables influenced the outcome of depression.
-- Education_level variable is negatively related to the outcome of depression, as is indicated by the negative estimate of -6.480e-02, whereby people with higher education levels were less depressed than others
+- Education_level variable is negatively related to the outcome of depression, as is indicated by the negative estimate of -6.480e-02, whereby people with higher education levels were less depressed than others.
 
 
